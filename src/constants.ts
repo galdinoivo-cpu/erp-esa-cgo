@@ -1,0 +1,32 @@
+export const GROUPS = [
+  "Comercial",
+  "Contratos",
+  "Ordem de Serviço",
+  "COL",
+  "Campo",
+  "Manutenção",
+  "Peças",
+  "Ativos",
+  "Produção",
+  "Financeiro",
+  "Laudo",
+  "Prestadores",
+  "Auditoria",
+] as const;
+
+export const DECISION_TYPES = [
+  "substituir robô",
+  "trocar prestador",
+  "bloquear ativo",
+  "liberar exceção",
+  "solicitar manutenção",
+  "solicitar peça",
+  "reagendar operação",
+  "suspender operação",
+  "autorizar avanço",
+  "exigir documento",
+  "acionar financeiro",
+  "acionar COL",
+  "acionar campo",
+  "acionar almoxarifado",
+] as const;

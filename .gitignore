@@ -1,0 +1,20 @@
+node_modules
+dist
+.DS_Store
+*.local
+.env
+.env.*
+
+# Editor / OS
+.idea
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+*.log
+
+# Vite
+*.timestamp-*
