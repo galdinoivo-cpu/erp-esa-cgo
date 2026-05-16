@@ -24,6 +24,22 @@ npm run dev:lan
 
 Usa o URL **Network** indicado no terminal.
 
+## Ver na Internet (GitHub Pages)
+
+Depois de configurares o GitHub (passo único em **Settings → Pages → Source: GitHub Actions**), cada `git push` gera o site:
+
+**https://galdinoivo-cpu.github.io/erp-esa-cgo/**
+
+Na primeira vez:
+
+1. No repositório: **Settings** → **Pages** (menu esquerdo).
+2. Em **Build and deployment** → **Source**, escolhe **GitHub Actions** (não “Deploy from a branch”).
+3. Faz **commit** e **push** deste projeto (o ficheiro `.github/workflows/deploy-github-pages.yml` tem de estar no GitHub).
+4. Abre o separador **Actions** e espera o workflow **Deploy GitHub Pages** ficar verde (1–3 minutos).
+5. Abre o link acima (pode demorar mais 1 minuto a propagar).
+
+Se mudares o **nome do repositório**, altera também `GH_PAGES_BASE` em `vite.config.ts` para `/NOME-DO-REPO/`.
+
 ## Scripts úteis
 
 | Comando        | Descrição                    |
