@@ -4,6 +4,7 @@ import {
   ClipboardList,
   FileStack,
   History,
+  HelpCircle,
   Home,
   Layers,
   LogOut,
@@ -22,6 +23,7 @@ import { PROFILE_LABELS } from "@/domain/authRoutes";
 const nav = [
   { to: "/cgo", label: "Dashboard", icon: Home, end: true },
   { to: "/cgo/radar", label: "Radar CGO", icon: Radar },
+  { to: "/cgo/help", label: "Ajuda CGO", icon: HelpCircle },
   { to: "/cgo/programadas", label: "Operações Programadas", icon: CalendarClock },
   { to: "/cgo/config", label: "Configuração CGO", icon: Settings },
   { to: "/cgo/modelos", label: "Modelos de Operação", icon: Layers },

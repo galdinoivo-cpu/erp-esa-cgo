@@ -12,6 +12,7 @@ import AtivosPage from "@/pages/AtivosPage";
 import LogsPage from "@/pages/LogsPage";
 import DecisoesPage from "@/pages/DecisoesPage";
 import HistoricoPage from "@/pages/HistoricoPage";
+import CgoHelpPage from "@/pages/CgoHelpPage";
 import AdminUsuariosPage from "@/pages/admin/AdminUsuariosPage";
 import RequireAuth from "@/components/RequireAuth";
 
@@ -23,6 +24,7 @@ export default function CgoRoutes() {
           <Route element={<AppLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="radar" element={<RadarCGO />} />
+            <Route path="help" element={<CgoHelpPage />} />
             <Route path="programadas" element={<Programadas />} />
             <Route path="config" element={<ConfiguracaoCGO />} />
             <Route path="modelos" element={<ModelosOperacao />} />

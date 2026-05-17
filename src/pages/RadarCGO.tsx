@@ -1,7 +1,13 @@
 import { useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import type { OperationInstance, TrafficStatus } from "@/types";
 import { useCgo } from "@/state/CgoContext";
 import { isVisibleOnRadar } from "@/domain/radarRules";
+import {
+  CGO_CARD_BY_ID,
+  operationVisibleForCardFilter,
+  type CgoDashboardCardId,
+} from "@/domain/cgoDashboardCards";
 import { formatDateTime, formatRemaining } from "@/domain/time";
 import DecisionModal from "@/components/DecisionModal";
 
@@ -15,6 +21,12 @@ type Filter = {
 
 export default function RadarCGO() {
   const { dbView, now } = useCgo();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const cardRaw = searchParams.get("card");
+  const activeCard: CgoDashboardCardId | null =
+    cardRaw && cardRaw in CGO_CARD_BY_ID ? (cardRaw as CgoDashboardCardId) : null;
+  const cardConfig = activeCard ? CGO_CARD_BY_ID[activeCard] : null;
+
   const [f, setF] = useState<Filter>({
     group: "todos",
     traffic: "todos",
@@ -25,11 +37,26 @@ export default function RadarCGO() {
   const [decisionOp, setDecisionOp] = useState<OperationInstance | null>(null);
 
   const radarOps = useMemo(() => {
+    const tasks = dbView.taskInstances;
+    if (activeCard === "operacoes_planejadas") {
+      return dbView.operationInstances.filter((o) =>
+        operationVisibleForCardFilter(o, activeCard, now, tasks)
+      );
+    }
+    if (activeCard) {
+      return dbView.operationInstances.filter(
+        (o) =>
+          operationVisibleForCardFilter(o, activeCard, now, tasks) &&
+          (isVisibleOnRadar(o, now) || activeCard === "tarefas_atrasadas")
+      );
+    }
     return dbView.operationInstances.filter((o) => isVisibleOnRadar(o, now));
-  }, [dbView, now]);
+  }, [dbView, now, activeCard]);
 
   const filtered = useMemo(() => {
+    const tasks = dbView.taskInstances;
     return radarOps.filter((o) => {
+      if (activeCard && !operationVisibleForCardFilter(o, activeCard, now, tasks)) return false;
       if (f.group !== "todos" && o.group !== f.group) return false;
       if (f.traffic !== "todos" && o.traffic !== f.traffic) return false;
       if (f.region !== "todos" && o.region !== f.region) return false;
@@ -37,7 +64,7 @@ export default function RadarCGO() {
       if (f.owner !== "todos" && o.currentOwner !== f.owner) return false;
       return true;
     });
-  }, [radarOps, f]);
+  }, [radarOps, f, activeCard, dbView.taskInstances, now]);
 
   const stats = useMemo(() => {
     const g = radarOps.filter((o) => o.traffic === "verde").length;
@@ -70,6 +97,23 @@ export default function RadarCGO() {
         <p className="text-cgo-muted text-sm mt-1">
           Operações dentro da janela de monitoramento ou com permanência crítica no Radar.
         </p>
+        {cardConfig && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-cgo-accent/40 bg-cgo-accent/10 px-3 py-2 text-sm">
+            <span className="text-white">
+              Filtro do Dashboard: <strong>{cardConfig.titulo}</strong>
+            </span>
+            <button
+              type="button"
+              className="text-xs text-cgo-accent underline"
+              onClick={() => setSearchParams({})}
+            >
+              Limpar filtro
+            </button>
+            <Link to="/cgo/help" className="text-xs text-cgo-muted hover:text-white underline">
+              Ajuda
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
