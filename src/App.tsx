@@ -1,6 +1,4 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useAuth } from "@/state/AuthContext";
-import { homePathForProfile } from "@/domain/authRoutes";
 import LoginPage from "@/pages/portal/LoginPage";
 import CgoRoutes from "@/routes/CgoRoutes";
 import RequireAuth from "@/components/RequireAuth";
@@ -11,19 +9,11 @@ import ColrManutencaoPage from "@/pages/colr/ColrManutencaoPage";
 import OperadorOcePage from "@/pages/operador/OperadorOcePage";
 import HistoricoProducaoPage from "@/pages/operador/HistoricoProducaoPage";
 
-function RootRedirect() {
-  const { session, currentUser } = useAuth();
-  if (session && currentUser?.status === "ativo") {
-    return <Navigate to={homePathForProfile(session.perfil)} replace />;
-  }
-  return <Navigate to="/login" replace />;
-}
-
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<RootRedirect />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       <Route path="/cgo/*" element={<CgoRoutes />} />
 
@@ -73,7 +63,7 @@ export default function App() {
         }
       />
 
-      <Route path="*" element={<RootRedirect />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

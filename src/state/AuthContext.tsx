@@ -17,7 +17,14 @@ import {
   hasCriticalBlock,
 } from "@/domain/oceRules";
 import { createSeedAuthDb, hashPasswordMock, verifyPasswordMock } from "@/data/authSeed";
-import { loadAuthDb, saveAuthDb } from "@/data/authPersistence";
+import {
+  clearSession,
+  loadSession,
+  loadUsers,
+  migrateClearPersistedSession,
+  saveSession,
+  saveUsers,
+} from "@/data/authPersistence";
 import { createSeedOceDb } from "@/data/oceSeed";
 import { loadOceDb, saveOceDb } from "@/data/ocePersistence";
 
@@ -60,17 +67,33 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authDb, setAuthDb] = useState<AuthDatabase>(() => loadAuthDb() ?? createSeedAuthDb());
+  migrateClearPersistedSession();
+
+  const [users, setUsers] = useState<ErpUser[]>(() => {
+    const loaded = loadUsers();
+    if (loaded?.length) return loaded;
+    return createSeedAuthDb().users;
+  });
+  const [session, setSession] = useState<AuthSession | null>(() => loadSession());
   const [oceDb, setOceDb] = useState<OceDatabase>(() => loadOceDb() ?? createSeedOceDb());
   const [activeOceId, setActiveOceId] = useState<string | null>(null);
 
-  useEffect(() => saveAuthDb(authDb), [authDb]);
+  const authDb: AuthDatabase = useMemo(() => ({ users, session }), [users, session]);
+
+  useEffect(() => {
+    saveUsers(users);
+  }, [users]);
+
+  useEffect(() => {
+    if (session) saveSession(session);
+    else clearSession();
+  }, [session]);
+
   useEffect(() => saveOceDb(oceDb), [oceDb]);
 
-  const session = authDb.session;
   const currentUser = useMemo(
-    () => (session ? authDb.users.find((u) => u.id === session.userId) ?? null : null),
-    [authDb.users, session]
+    () => (session ? users.find((u) => u.id === session.userId) ?? null : null),
+    [users, session]
   );
 
   const appendOceEvent = useCallback(
@@ -114,8 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (trimmed === MASTER_LOGIN_USERNAME.toLowerCase() && masterPw && password === masterPw) {
         const diretor =
-          authDb.users.find((u) => u.perfil === "DIRETOR_CGO_MASTER" && u.status === "ativo") ??
-          authDb.users[0];
+          users.find((u) => u.perfil === "DIRETOR_CGO_MASTER" && u.status === "ativo") ?? users[0];
         if (!diretor) return { ok: false, error: "Usuário diretor não configurado." };
         const sess: AuthSession = {
           userId: diretor.id,
@@ -123,11 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loginAt: new Date().toISOString(),
           viaMasterKey: true,
         };
-        setAuthDb((d) => ({ ...d, session: sess }));
+        setSession(sess);
         return { ok: true, redirect: homePathForProfile(diretor.perfil) };
       }
 
-      const user = authDb.users.find((u) => u.login.toLowerCase() === trimmed);
+      const user = users.find((u) => u.login.toLowerCase() === trimmed);
       if (!user) return { ok: false, error: "Usuário ou senha inválidos." };
       if (user.status === "bloqueado") return { ok: false, error: "Usuário bloqueado. Contacte a CGO." };
       if (user.status === "pendente") return { ok: false, error: "Cadastro pendente de ativação." };
@@ -141,49 +163,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginAt: new Date().toISOString(),
         viaMasterKey: false,
       };
-      setAuthDb((d) => ({ ...d, session: sess }));
+      setSession(sess);
       return { ok: true, redirect: homePathForProfile(user.perfil) };
     },
-    [authDb.users, appendOceEvent]
+    [users]
   );
 
   const logout = useCallback(() => {
-    setAuthDb((d) => ({ ...d, session: null }));
+    setSession(null);
+    clearSession();
     setActiveOceId(null);
   }, []);
 
   const upsertUser = useCallback((user: ErpUser, plainPassword?: string) => {
-    setAuthDb((d) => {
-      const ix = d.users.findIndex((u) => u.id === user.id);
+    setUsers((list) => {
+      const ix = list.findIndex((u) => u.id === user.id);
       const nextUser = {
         ...user,
         passwordHash: plainPassword ? hashPasswordMock(plainPassword) : user.passwordHash,
         updatedAt: new Date().toISOString(),
       };
-      const users =
-        ix >= 0 ? d.users.map((u) => (u.id === user.id ? nextUser : u)) : [...d.users, nextUser];
-      return { ...d, users };
+      return ix >= 0 ? list.map((u) => (u.id === user.id ? nextUser : u)) : [...list, nextUser];
     });
   }, []);
 
   const resetUserPassword = useCallback((userId: string, plainPassword: string) => {
-    setAuthDb((d) => ({
-      ...d,
-      users: d.users.map((u) =>
+    setUsers((list) =>
+      list.map((u) =>
         u.id === userId
           ? { ...u, passwordHash: hashPasswordMock(plainPassword), updatedAt: new Date().toISOString() }
           : u
-      ),
-    }));
+      )
+    );
   }, []);
 
   const setUserStatus = useCallback((userId: string, status: UserStatus) => {
-    setAuthDb((d) => ({
-      ...d,
-      users: d.users.map((u) =>
+    setUsers((list) =>
+      list.map((u) =>
         u.id === userId ? { ...u, status, updatedAt: new Date().toISOString() } : u
-      ),
-    }));
+      )
+    );
   }, []);
 
   const getOceById = useCallback(

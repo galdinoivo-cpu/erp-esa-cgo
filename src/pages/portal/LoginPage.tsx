@@ -1,18 +1,13 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/state/AuthContext";
-import { homePathForProfile } from "@/domain/authRoutes";
 
 export default function LoginPage() {
-  const { session, currentUser, login } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
-
-  if (session && currentUser?.status === "ativo") {
-    return <Navigate to={homePathForProfile(session.perfil)} replace />;
-  }
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -32,14 +27,19 @@ export default function LoginPage() {
           <p className="text-xs uppercase tracking-[0.2em] text-cgo-muted">ESA</p>
           <h1 className="text-2xl font-bold text-white mt-1">Portal ERP ESA</h1>
           <p className="text-sm text-cgo-muted mt-2">Acesso individual por perfil</p>
+          <p className="text-[11px] text-cgo-muted mt-3">
+            Cada visita começa aqui. A sessão vale só nesta aba — use <strong className="text-slate-400">Sair</strong> ao
+            terminar.
+          </p>
         </header>
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4" autoComplete="off">
           <label className="block text-sm">
             <span className="text-cgo-muted">Usuário</span>
             <input
               required
-              autoComplete="username"
+              autoComplete="off"
+              name="esa-login-user"
               className="mt-1 w-full rounded-lg bg-cgo-bg border border-cgo-border px-3 py-2.5 text-white"
               value={user}
               onChange={(e) => setUser(e.target.value)}
@@ -51,7 +51,8 @@ export default function LoginPage() {
             <input
               required
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
+              name="esa-login-pass"
               className="mt-1 w-full rounded-lg bg-cgo-bg border border-cgo-border px-3 py-2.5 text-white"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
