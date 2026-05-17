@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import type { OperationInstance } from "@/types";
 import { useCgo } from "@/state/CgoContext";
+import { useAuth } from "@/state/AuthContext";
 import { DECISION_TYPES } from "@/constants";
 import { formatDateTime } from "@/domain/time";
 
@@ -11,7 +12,9 @@ export default function DecisionModal({
   operation: OperationInstance;
   onClose: () => void;
 }) {
-  const { registerDecision, currentUserId, dismissRadar } = useCgo();
+  const { registerDecision, dismissRadar } = useCgo();
+  const { currentUser } = useAuth();
+  const currentUserId = currentUser?.id ?? "sistema";
   const [decisionType, setDecisionType] = useState<string>(DECISION_TYPES[0]);
   const [instruction, setInstruction] = useState("");
   const [assignedTo, setAssignedTo] = useState(operation.currentOwner);

@@ -8,7 +8,7 @@ export default function ModelosOperacao() {
       <h1 className="text-2xl font-semibold text-white">Modelos de operação</h1>
       <p className="text-cgo-muted text-sm">
         Lista compacta. Para editar prazos, flags e duplicar, use{" "}
-        <Link to="/config" className="text-cgo-accent hover:underline">
+        <Link to="/cgo/config" className="text-cgo-accent hover:underline">
           Configuração CGO
         </Link>
         .

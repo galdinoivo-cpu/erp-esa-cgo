@@ -9,3 +9,10 @@
 body {
   @apply bg-cgo-bg text-slate-100 antialiased min-h-screen;
 }
+
+/* Layout mobile-first para operador terceirizado */
+@media (max-width: 640px) {
+  .operador-shell {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+}

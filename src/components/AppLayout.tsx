@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   CalendarClock,
   ClipboardList,
@@ -6,47 +6,52 @@ import {
   History,
   Home,
   Layers,
+  LogOut,
   Package,
   Radar,
   ScrollText,
   Settings,
+  UserCog,
   Users,
 } from "lucide-react";
 import { useCgo } from "@/state/CgoContext";
+import { useAuth } from "@/state/AuthContext";
 import { formatDateTime } from "@/domain/time";
+import { PROFILE_LABELS } from "@/domain/authRoutes";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: Home },
-  { to: "/radar", label: "Radar CGO", icon: Radar },
-  { to: "/programadas", label: "Operações Programadas", icon: CalendarClock },
-  { to: "/config", label: "Configuração CGO", icon: Settings },
-  { to: "/modelos", label: "Modelos de Operação", icon: Layers },
-  { to: "/tarefas", label: "Tarefas (modelo)", icon: ClipboardList },
-  { to: "/checklists", label: "Checklists", icon: FileStack },
-  { to: "/ativos", label: "Ativos", icon: Package },
-  { to: "/logs", label: "Logs", icon: ScrollText },
-  { to: "/decisoes", label: "Decisões CGO", icon: Users },
-  { to: "/historico", label: "Histórico", icon: History },
+  { to: "/cgo", label: "Dashboard", icon: Home, end: true },
+  { to: "/cgo/radar", label: "Radar CGO", icon: Radar },
+  { to: "/cgo/programadas", label: "Operações Programadas", icon: CalendarClock },
+  { to: "/cgo/config", label: "Configuração CGO", icon: Settings },
+  { to: "/cgo/modelos", label: "Modelos de Operação", icon: Layers },
+  { to: "/cgo/tarefas", label: "Tarefas (modelo)", icon: ClipboardList },
+  { to: "/cgo/checklists", label: "Checklists", icon: FileStack },
+  { to: "/cgo/ativos", label: "Ativos", icon: Package },
+  { to: "/cgo/logs", label: "Logs", icon: ScrollText },
+  { to: "/cgo/decisoes", label: "Decisões CGO", icon: Users },
+  { to: "/cgo/historico", label: "Histórico", icon: History },
 ];
 
 export default function AppLayout() {
-  const { now, offsetMs, setClockOffsetMinutes, advanceClockHours, resetClock, currentUserId, setCurrentUserId, rawDb } =
-    useCgo();
+  const { now, offsetMs, setClockOffsetMinutes, advanceClockHours, resetClock } = useCgo();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen">
+    <section className="flex min-h-screen">
       <aside className="w-60 shrink-0 border-r border-cgo-border bg-cgo-panel flex flex-col">
-        <div className="p-4 border-b border-cgo-border">
-          <div className="text-xs uppercase tracking-wide text-cgo-muted">ESA ERP</div>
-          <div className="text-lg font-semibold text-white">CGO</div>
-          <div className="text-xs text-cgo-muted mt-1">Central de Gerência de Operação</div>
-        </div>
+        <header className="p-4 border-b border-cgo-border">
+          <p className="text-xs uppercase tracking-wide text-cgo-muted">ESA ERP</p>
+          <p className="text-lg font-semibold text-white">CGO</p>
+          <p className="text-xs text-cgo-muted mt-1">Central de Gerência de Operação</p>
+        </header>
         <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {nav.map(({ to, label, icon: Icon }) => (
+          {nav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
-              end={to === "/"}
+              end={end}
               className={({ isActive }) =>
                 `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
                   isActive
@@ -59,69 +64,61 @@ export default function AppLayout() {
               {label}
             </NavLink>
           ))}
-        </nav>
-        <div className="p-3 border-t border-cgo-border text-xs text-cgo-muted space-y-2">
-          <div>
-            <div className="text-cgo-muted mb-1">Relógio simulado</div>
-            <div className="text-white font-mono text-[11px]">{formatDateTime(now.toISOString())}</div>
-            {offsetMs !== 0 && (
-              <div className="text-amber-400 mt-1">Offset ativo (+{Math.round(offsetMs / 3600000)}h)</div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-white/10 hover:bg-white/15"
-              onClick={() => advanceClockHours(6)}
+          {currentUser?.perfil === "DIRETOR_CGO_MASTER" && (
+            <NavLink
+              to="/cgo/admin-usuarios"
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
+                  isActive ? "bg-cgo-accent/20 text-white border border-cgo-accent/40" : "text-slate-300 hover:bg-white/5 border border-transparent"
+                }`
+              }
             >
+              <UserCog className="w-4 h-4" />
+              Administração de Usuários
+            </NavLink>
+          )}
+        </nav>
+        <footer className="p-3 border-t border-cgo-border text-xs text-cgo-muted space-y-2">
+          {currentUser && (
+            <p className="text-slate-300">
+              {currentUser.nomeCompleto}
+              <br />
+              <span className="text-cgo-muted">{PROFILE_LABELS[currentUser.perfil]}</span>
+            </p>
+          )}
+          <p className="text-white font-mono text-[11px]">{formatDateTime(now.toISOString())}</p>
+          <p className="flex flex-wrap gap-1">
+            <button type="button" className="px-2 py-1 rounded bg-white/10" onClick={() => advanceClockHours(6)}>
               +6h
             </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-white/10 hover:bg-white/15"
-              onClick={() => advanceClockHours(24)}
-            >
+            <button type="button" className="px-2 py-1 rounded bg-white/10" onClick={() => advanceClockHours(24)}>
               +24h
             </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-white/10 hover:bg-white/15"
-              onClick={() => setClockOffsetMinutes(0)}
-            >
-              offset 0
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-rose-900/40 hover:bg-rose-800/50"
-              onClick={() => resetClock()}
-            >
+            <button type="button" className="px-2 py-1 rounded bg-white/10" onClick={() => resetClock()}>
               real
             </button>
-          </div>
-          <label className="block">
-            <span className="text-cgo-muted">Usuário ativo</span>
-            <select
-              className="mt-1 w-full rounded bg-cgo-bg border border-cgo-border px-2 py-1 text-white text-xs"
-              value={currentUserId}
-              onChange={(e) => setCurrentUserId(e.target.value)}
-            >
-              {rawDb.users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          </p>
+          <button
+            type="button"
+            className="w-full flex items-center justify-center gap-1 rounded border border-cgo-border py-1.5 text-slate-300 hover:bg-white/5"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sair
+          </button>
+        </footer>
       </aside>
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-12 border-b border-cgo-border flex items-center px-4 justify-between bg-cgo-panel/80 backdrop-blur">
-          <span className="text-sm text-cgo-muted">MVP — dados em JSON / localStorage</span>
+      <section className="flex-1 flex flex-col min-w-0">
+        <header className="h-12 border-b border-cgo-border flex items-center px-4 bg-cgo-panel/80">
+          <span className="text-sm text-cgo-muted">MVP — JSON / localStorage · pronto para backend</span>
         </header>
         <main className="flex-1 overflow-auto p-6">
           <Outlet />
         </main>
-      </div>
-    </div>
+      </section>
+    </section>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { CgoProvider } from "@/state/CgoContext";
+import { AuthProvider } from "@/state/AuthContext";
 import App from "@/App";
 import "@/index.css";
 
@@ -13,9 +13,9 @@ const routerBasename =
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter basename={routerBasename}>
-      <CgoProvider>
+      <AuthProvider>
         <App />
-      </CgoProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

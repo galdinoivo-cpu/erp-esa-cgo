@@ -1,34 +1,79 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import AppLayout from "@/components/AppLayout";
-import Dashboard from "@/pages/Dashboard";
-import RadarCGO from "@/pages/RadarCGO";
-import Programadas from "@/pages/Programadas";
-import ConfiguracaoCGO from "@/pages/ConfiguracaoCGO";
-import ModelosOperacao from "@/pages/ModelosOperacao";
-import TarefasModelo from "@/pages/TarefasModelo";
-import ChecklistsPage from "@/pages/ChecklistsPage";
-import AtivosPage from "@/pages/AtivosPage";
-import LogsPage from "@/pages/LogsPage";
-import DecisoesPage from "@/pages/DecisoesPage";
-import HistoricoPage from "@/pages/HistoricoPage";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "@/state/AuthContext";
+import { homePathForProfile } from "@/domain/authRoutes";
+import LoginPage from "@/pages/portal/LoginPage";
+import CgoRoutes from "@/routes/CgoRoutes";
+import RequireAuth from "@/components/RequireAuth";
+import { CgoProvider } from "@/state/CgoContext";
+import ColrGerenciaPage from "@/pages/colr/ColrGerenciaPage";
+import ColrTRPage from "@/pages/colr/ColrTRPage";
+import ColrManutencaoPage from "@/pages/colr/ColrManutencaoPage";
+import OperadorOcePage from "@/pages/operador/OperadorOcePage";
+import HistoricoProducaoPage from "@/pages/operador/HistoricoProducaoPage";
+
+function RootRedirect() {
+  const { session, currentUser } = useAuth();
+  if (session && currentUser?.status === "ativo") {
+    return <Navigate to={homePathForProfile(session.perfil)} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="radar" element={<RadarCGO />} />
-        <Route path="programadas" element={<Programadas />} />
-        <Route path="config" element={<ConfiguracaoCGO />} />
-        <Route path="modelos" element={<ModelosOperacao />} />
-        <Route path="tarefas" element={<TarefasModelo />} />
-        <Route path="checklists" element={<ChecklistsPage />} />
-        <Route path="ativos" element={<AtivosPage />} />
-        <Route path="logs" element={<LogsPage />} />
-        <Route path="decisoes" element={<DecisoesPage />} />
-        <Route path="historico" element={<HistoricoPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<RootRedirect />} />
+
+      <Route path="/cgo/*" element={<CgoRoutes />} />
+
+      <Route
+        path="/colr/gerencia"
+        element={
+          <RequireAuth profiles={["COLR_GERENCIA", "DIRETOR_CGO_MASTER"]}>
+            <CgoProvider>
+              <ColrGerenciaPage />
+            </CgoProvider>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/colr/tr"
+        element={
+          <RequireAuth profiles={["COLR_TR", "DIRETOR_CGO_MASTER"]}>
+            <ColrTRPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/colr/manutencao"
+        element={
+          <RequireAuth profiles={["COLR_MANUTENCAO", "DIRETOR_CGO_MASTER"]}>
+            <CgoProvider>
+              <ColrManutencaoPage />
+            </CgoProvider>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/operador/oce"
+        element={
+          <RequireAuth profiles={["TERCEIRIZADO_OPERADOR", "DIRETOR_CGO_MASTER"]}>
+            <OperadorOcePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/operador/historico-producao"
+        element={
+          <RequireAuth profiles={["TERCEIRIZADO_OPERADOR", "DIRETOR_CGO_MASTER"]}>
+            <HistoricoProducaoPage />
+          </RequireAuth>
+        }
+      />
+
+      <Route path="*" element={<RootRedirect />} />
     </Routes>
   );
 }

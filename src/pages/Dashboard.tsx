@@ -41,13 +41,13 @@ export default function Dashboard() {
       </div>
       <div className="flex gap-3">
         <Link
-          to="/radar"
+          to="/cgo/radar"
           className="inline-flex items-center rounded-md bg-cgo-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
         >
           Abrir Radar CGO
         </Link>
         <Link
-          to="/programadas"
+          to="/cgo/programadas"
           className="inline-flex items-center rounded-md border border-cgo-border px-4 py-2 text-sm text-slate-200 hover:bg-white/5"
         >
           Operações programadas
