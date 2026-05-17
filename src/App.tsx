@@ -8,6 +8,7 @@ import ColrTRPage from "@/pages/colr/ColrTRPage";
 import ColrManutencaoPage from "@/pages/colr/ColrManutencaoPage";
 import OperadorOcePage from "@/pages/operador/OperadorOcePage";
 import HistoricoProducaoPage from "@/pages/operador/HistoricoProducaoPage";
+import EngenheiroRoutes from "@/routes/EngenheiroRoutes";
 
 export default function App() {
   return (
@@ -62,6 +63,8 @@ export default function App() {
           </RequireAuth>
         }
       />
+
+      <Route path="/cliente/engenheiro/*" element={<EngenheiroRoutes />} />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

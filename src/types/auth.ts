@@ -4,7 +4,8 @@ export type UserProfile =
   | "COLR_GERENCIA"
   | "COLR_TR"
   | "COLR_MANUTENCAO"
-  | "TERCEIRIZADO_OPERADOR";
+  | "TERCEIRIZADO_OPERADOR"
+  | "ENGENHEIRO_CLIENTE";
 
 export type UserStatus = "ativo" | "bloqueado" | "pendente";
 
@@ -21,6 +22,11 @@ export interface ErpUser {
   colrId: string | null;
   empresaTerceirizada: string | null;
   isTerceirizado: boolean;
+  /** Portal do engenheiro (cliente) */
+  contratoId: string | null;
+  clienteId: string | null;
+  fazendaIds: string[] | null;
+  crea: string | null;
   status: UserStatus;
   observacoes: string;
   createdAt: string;

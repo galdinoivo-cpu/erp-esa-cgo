@@ -70,9 +70,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   migrateClearPersistedSession();
 
   const [users, setUsers] = useState<ErpUser[]>(() => {
+    const seed = createSeedAuthDb().users;
     const loaded = loadUsers();
-    if (loaded?.length) return loaded;
-    return createSeedAuthDb().users;
+    if (!loaded?.length) return seed;
+    const merged = [...loaded];
+    for (const su of seed) {
+      if (!merged.some((u) => u.id === su.id)) merged.push(su);
+    }
+    return merged.map((u) => {
+      const base = seed.find((s) => s.id === u.id);
+      return {
+        ...u,
+        contratoId: u.contratoId ?? base?.contratoId ?? null,
+        clienteId: u.clienteId ?? base?.clienteId ?? null,
+        fazendaIds: u.fazendaIds ?? base?.fazendaIds ?? null,
+        crea: u.crea ?? base?.crea ?? null,
+      };
+    });
   });
   const [session, setSession] = useState<AuthSession | null>(() => loadSession());
   const [oceDb, setOceDb] = useState<OceDatabase>(() => loadOceDb() ?? createSeedOceDb());

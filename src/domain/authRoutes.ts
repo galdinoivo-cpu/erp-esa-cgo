@@ -14,6 +14,8 @@ export function homePathForProfile(perfil: UserProfile): string {
       return "/colr/manutencao";
     case "TERCEIRIZADO_OPERADOR":
       return "/operador/oce";
+    case "ENGENHEIRO_CLIENTE":
+      return "/cliente/engenheiro";
     default:
       return "/login";
   }
@@ -41,6 +43,9 @@ export function profilesAllowedForPath(
   if (path.startsWith("/operador")) {
     return ["TERCEIRIZADO_OPERADOR", "DIRETOR_CGO_MASTER"];
   }
+  if (path.startsWith("/cliente/engenheiro")) {
+    return ["ENGENHEIRO_CLIENTE", "DIRETOR_CGO_MASTER"];
+  }
   return ["DIRETOR_CGO_MASTER"];
 }
 
@@ -57,4 +62,5 @@ export const PROFILE_LABELS: Record<UserProfile, string> = {
   COLR_TR: "COLR TR — Entrega/Recebimento",
   COLR_MANUTENCAO: "COLR Manutenção",
   TERCEIRIZADO_OPERADOR: "Operador terceirizado",
+  ENGENHEIRO_CLIENTE: "Portal do Engenheiro",
 };

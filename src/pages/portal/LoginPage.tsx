@@ -80,6 +80,7 @@ export default function LoginPage() {
             <li>tr.ba / tr123 — COLR TR</li>
             <li>manut.ms / manut123 — Manutenção</li>
             <li>carlos.silva / operador123 — Operador OCE</li>
+            <li>rafael.eng / eng123 — Portal do Engenheiro (Fazenda Santa Clara)</li>
           </ul>
         </details>
       </article>
