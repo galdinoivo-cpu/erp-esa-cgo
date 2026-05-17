@@ -74,7 +74,10 @@ export default function LoginPage() {
         <details className="mt-6 text-xs text-cgo-muted">
           <summary className="cursor-pointer hover:text-slate-300">Contas demo (protótipo)</summary>
           <ul className="mt-2 space-y-1 list-disc pl-4">
-            <li>diretor.cgo + chave mestre (env ou ESA-DIRETOR-2026 em dev)</li>
+            <li>
+              <strong className="text-slate-300">diretor.cgo</strong> / <strong className="text-slate-300">ESA-DIRETOR-2026</strong>{" "}
+              — Diretor CGO (não digite &quot;chave mestre&quot;, use a senha)
+            </li>
             <li>ana.cgo / cgo123 — CGO Admin</li>
             <li>gerente.ba / colr123 — COLR Gerência</li>
             <li>tr.ba / tr123 — COLR TR</li>

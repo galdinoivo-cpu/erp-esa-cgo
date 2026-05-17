@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { AuthDatabase, AuthSession, ErpUser, UserProfile, UserStatus } from "@/types/auth";
 import type { OceDatabase, OceEvent, OceEventType, OceRecord } from "@/types/oce";
-import { getMasterPassword, MASTER_LOGIN_USERNAME } from "@/config/authConfig";
+import { DEFAULT_MASTER_PASSWORD, getMasterPassword, MASTER_LOGIN_USERNAME } from "@/config/authConfig";
 import { homePathForProfile } from "@/domain/authRoutes";
 import {
   allMandatoryItemsValidated,
@@ -79,12 +79,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return merged.map((u) => {
       const base = seed.find((s) => s.id === u.id);
+      const isDiretor = u.login.toLowerCase() === MASTER_LOGIN_USERNAME.toLowerCase();
+      const synced =
+        isDiretor && base
+          ? {
+              ...u,
+              passwordHash: base.passwordHash,
+              perfil: base.perfil,
+              status: u.status === "bloqueado" ? u.status : base.status,
+            }
+          : u;
       return {
-        ...u,
-        contratoId: u.contratoId ?? base?.contratoId ?? null,
-        clienteId: u.clienteId ?? base?.clienteId ?? null,
-        fazendaIds: u.fazendaIds ?? base?.fazendaIds ?? null,
-        crea: u.crea ?? base?.crea ?? null,
+        ...synced,
+        contratoId: synced.contratoId ?? base?.contratoId ?? null,
+        clienteId: synced.clienteId ?? base?.clienteId ?? null,
+        fazendaIds: synced.fazendaIds ?? base?.fazendaIds ?? null,
+        crea: synced.crea ?? base?.crea ?? null,
       };
     });
   });
@@ -149,21 +159,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const trimmed = loginName.trim().toLowerCase();
       const masterPw = getMasterPassword();
 
-      if (trimmed === MASTER_LOGIN_USERNAME.toLowerCase() && masterPw && password === masterPw) {
-        const diretor =
-          users.find((u) => u.perfil === "DIRETOR_CGO_MASTER" && u.status === "ativo") ?? users[0];
-        if (!diretor) return { ok: false, error: "Usuário diretor não configurado." };
-        const sess: AuthSession = {
-          userId: diretor.id,
-          perfil: diretor.perfil,
-          loginAt: new Date().toISOString(),
-          viaMasterKey: true,
-        };
-        setSession(sess);
-        return { ok: true, redirect: homePathForProfile(diretor.perfil) };
+      const user = users.find((u) => u.login.toLowerCase() === trimmed);
+
+      if (trimmed === MASTER_LOGIN_USERNAME.toLowerCase() && user) {
+        const viaMaster = masterPw.length > 0 && password === masterPw;
+        const viaSeed =
+          verifyPasswordMock(password, user.passwordHash) || password === DEFAULT_MASTER_PASSWORD;
+        if (viaMaster || viaSeed) {
+          if (user.status === "bloqueado") return { ok: false, error: "Usuário bloqueado. Contacte a CGO." };
+          const sess: AuthSession = {
+            userId: user.id,
+            perfil: user.perfil,
+            loginAt: new Date().toISOString(),
+            viaMasterKey: viaMaster,
+          };
+          setSession(sess);
+          return { ok: true, redirect: homePathForProfile(user.perfil) };
+        }
+        return { ok: false, error: "Usuário ou senha inválidos." };
       }
 
-      const user = users.find((u) => u.login.toLowerCase() === trimmed);
       if (!user) return { ok: false, error: "Usuário ou senha inválidos." };
       if (user.status === "bloqueado") return { ok: false, error: "Usuário bloqueado. Contacte a CGO." };
       if (user.status === "pendente") return { ok: false, error: "Cadastro pendente de ativação." };
